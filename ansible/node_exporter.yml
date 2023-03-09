@@ -1,0 +1,37 @@
+- name: Wget node_exporter
+  get_url:
+    url: https://github.com/prometheus/node_exporter/releases/download/v1.5.0/node_exporter-1.5.0.linux-amd64.tar.gz
+    dest: /tmp/
+    
+- name: Extract files
+  unarchive:
+    src: /tmp/node_exporter-1.5.0.linux-amd64.tar.gz
+    dest: /tmp/
+    remote_src: yes
+    
+- name: Create user node_exporter
+  user:
+    name: node_exporter
+    shell: /bin/bash
+    append: yes
+
+- name: Copy node_exporter to /usr/local/bin/
+  copy:
+    src: /tmp/node_exporter-1.5.0.linux-amd64/node_exporter
+    dest: /usr/local/bin/node_exporter
+    remote_src: yes
+    owner: node_exporter
+    group: node_exporter
+    mode: '0755'
+
+- name: Copy service config to server
+  copy:
+    src: ./configs/node_exporter.service
+    dest: /usr/lib/systemd/system/node_exporter.service
+
+- name: Start node exporter
+  systemd:
+    name: node_exporter
+    state: started
+    daemon_reload: yes
+    enabled: yes
